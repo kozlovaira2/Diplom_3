@@ -49,10 +49,19 @@ class BasePage:
     def wait_until_element_visibility(self, locator):
         return WebDriverWait(self.driver, TestData.WAIT_TIMEOUT).until(EC.visibility_of_element_located(locator))
 
+    @allure.step('Дождаться невидимости элемента')
+    def wait_until_element_invisible(self, locator):
+        return WebDriverWait(self.driver, TestData.WAIT_TIMEOUT).until(EC.invisibility_of_element(locator))
+
     @allure.step('Получить текущую ссылку')
     def get_current_url(self):
         current_url = self.driver.current_url
         return current_url
+
+    @allure.step('Получить имя браузера')
+    def get_browser_name(self):
+        """Возвращает имя текущего браузера"""
+        return self.driver.capabilities.get('browserName', '').lower()
 
     @allure.step('Перетащить элемент (стандартный)')
     def drag_and_drop_on_element(self, locator_one, locator_two):
@@ -63,10 +72,6 @@ class BasePage:
 
     @allure.step('Перетащить элемент через JavaScript (для Firefox)')
     def drag_and_drop_js(self, source_locator, target_locator):
-        """
-        Перетаскивает элемент из source_locator в target_locator с использованием JavaScript.
-        Работает в Firefox, где стандартный drag_and_drop нестабилен.
-        """
         self.wait_until_element_visibility(source_locator)
         self.wait_until_element_visibility(target_locator)
 

@@ -5,7 +5,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from data import TestData
-import time
 
 
 class MainPage(BasePage):
@@ -42,24 +41,18 @@ class MainPage(BasePage):
             return 0
     
     def add_filling_to_order(self):
-        """Добавление ингредиента в заказ с поддержкой Firefox через JS drag_and_drop"""
         self.wait_for_element_to_be_clickable(MainPageLocators.BUN_INGREDIENT)
         
-        # Определяем браузер
-        browser_name = self.driver.capabilities.get('browserName', '').lower()
-        
-        if browser_name == 'firefox':
-            # Для Firefox используем JS drag_and_drop
+        # Используем метод из BasePage для получения имени браузера
+        if self.get_browser_name() == 'firefox':
             self.drag_and_drop_js(MainPageLocators.BUN_INGREDIENT, MainPageLocators.ORDER_BASKET)
         else:
-            # Для Chrome используем стандартный drag_and_drop
             try:
                 self.drag_and_drop_on_element(MainPageLocators.BUN_INGREDIENT, MainPageLocators.ORDER_BASKET)
             except:
-                # Если не работает, пробуем JS
                 self.drag_and_drop_js(MainPageLocators.BUN_INGREDIENT, MainPageLocators.ORDER_BASKET)
         
-        time.sleep(2)
+        self.wait_until_element_visibility(MainPageLocators.INGREDIENT_COUNTER)
     
     # МОДАЛЬНОЕ ОКНО ИНГРЕДИЕНТА
     def check_show_window_with_details(self):
@@ -75,9 +68,10 @@ class MainPage(BasePage):
     # ЗАКАЗЫ
     def click_order_button(self):
         self.move_to_element_and_click(MainPageLocators.CREATE_ORDER_BUTTON)
+        self.wait_until_element_visibility(MainPageLocators.ORDER_IDENTIFICATE)
     
     def click_close_modal_order(self):
-        time.sleep(2)
+        self.wait_until_element_visibility(MainPageLocators.CLOSE_MODAL_ORDER)
         try:
             close_button = self.driver.find_element(*MainPageLocators.CLOSE_MODAL_ORDER)
             self.driver.execute_script("arguments[0].click();", close_button)
@@ -87,7 +81,7 @@ class MainPage(BasePage):
                 self.driver.execute_script("arguments[0].click();", close_button)
             except:
                 pass
-        time.sleep(2)
+        self.wait_until_element_invisible(MainPageLocators.CLOSE_MODAL_ORDER)
     
     def check_show_window_with_order_id(self):
         self.wait_until_element_visibility(MainPageLocators.ORDER_IDENTIFICATE)
@@ -96,9 +90,10 @@ class MainPage(BasePage):
     def get_with_order_id(self):
         self.wait_until_element_visibility(MainPageLocators.ORDER_ID)
         order_id = self.get_actually_text(MainPageLocators.ORDER_ID)
-        while order_id == '9999':
-            order_id = self.get_actually_text(MainPageLocators.ORDER_ID)
-        return f"{order_id}"
+        WebDriverWait(self.driver, TestData.WAIT_TIMEOUT).until(
+            lambda driver: self.get_actually_text(MainPageLocators.ORDER_ID) != '9999'
+        )
+        return self.get_actually_text(MainPageLocators.ORDER_ID)
     
     def check_displayed_order_status_text(self):
         return self.check_presense(MainPageLocators.ORDER_STATUS_TEXT).is_displayed()
@@ -131,6 +126,7 @@ class MainPage(BasePage):
     
     def get_user_order_in_progress(self):
         try:
+            self.wait_until_element_visibility(OrderFeedLocators.NUMBER_IN_PROGRESS)
             element = self.driver.find_element(*OrderFeedLocators.NUMBER_IN_PROGRESS)
             return element.text
         except:

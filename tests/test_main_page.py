@@ -1,7 +1,6 @@
 import pytest
 import allure
 from data import TestData
-import time
 
 
 @allure.epic("UI Тесты")
@@ -36,9 +35,7 @@ class TestMainPage:
 
     @allure.title('При добавлении ингредиента в заказ, счетчик увеличивается')
     def test_ingredient_counter(self, pages):
-        time.sleep(2)
         prev_counter_value = pages.get_count_value()
         pages.add_filling_to_order()
-        time.sleep(2)
         actual_value = pages.get_count_value()
         assert actual_value > prev_counter_value
