@@ -11,10 +11,6 @@ ENV/
 .coverage
 htmlcov/
 
-allure-results/
-allure-report/
-allure_results/
-
 .vscode/
 .idea/
 *.swp
