@@ -2,8 +2,6 @@ from pages.base_page import BasePage
 from locators.main_page_locators import MainPageLocators
 from locators.order_feed_locators import OrderFeedLocators
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from data import TestData
 import allure
 
@@ -43,8 +41,7 @@ class MainPage(BasePage):
     def get_count_value(self):
         try:
             self.wait_until_element_visibility(MainPageLocators.INGREDIENT_COUNTER)
-            counter = self.driver.find_element(*MainPageLocators.INGREDIENT_COUNTER)
-            return int(counter.text) if counter.text else 0
+            return self.get_actually_text(MainPageLocators.INGREDIENT_COUNTER)
         except:
             return 0
     
@@ -52,7 +49,6 @@ class MainPage(BasePage):
     def add_filling_to_order(self):
         self.wait_for_element_to_be_clickable(MainPageLocators.BUN_INGREDIENT)
         
-        # Используем метод из BasePage для получения имени браузера
         if self.get_browser_name() == 'firefox':
             self.drag_and_drop_js(MainPageLocators.BUN_INGREDIENT, MainPageLocators.ORDER_BASKET)
         else:
@@ -98,9 +94,7 @@ class MainPage(BasePage):
     def get_with_order_id(self):
         self.wait_until_element_visibility(MainPageLocators.ORDER_ID)
         order_id = self.get_actually_text(MainPageLocators.ORDER_ID)
-        WebDriverWait(self.driver, TestData.WAIT_TIMEOUT).until(
-            lambda driver: self.get_actually_text(MainPageLocators.ORDER_ID) != '9999'
-        )
+        self.wait_until_text_not_equal(MainPageLocators.ORDER_ID, '9999')
         return self.get_actually_text(MainPageLocators.ORDER_ID)
     
     @allure.step('Проверка статуса заказа "Ваш заказ начали готовить"')
@@ -110,13 +104,11 @@ class MainPage(BasePage):
     # ОБЩИЕ МЕТОДЫ
     @allure.step('Получение текущего URL')
     def get_current_url(self):
-        return self.driver.current_url
+        return super().get_current_url()
     
     @allure.step('Ожидание перехода по URL')
     def wait_for_url(self, expected_url):
-        WebDriverWait(self.driver, TestData.WAIT_TIMEOUT).until(
-            lambda driver: driver.current_url == expected_url
-        )
+        self.wait_until_url_equals(expected_url)
     
     @allure.step('Клик по кнопке "История заказов"')
     def click_order_history_button(self):
@@ -142,7 +134,6 @@ class MainPage(BasePage):
     def get_user_order_in_progress(self):
         try:
             self.wait_until_element_visibility(OrderFeedLocators.NUMBER_IN_PROGRESS)
-            element = self.driver.find_element(*OrderFeedLocators.NUMBER_IN_PROGRESS)
-            return element.text
+            return self.get_actually_text(OrderFeedLocators.NUMBER_IN_PROGRESS)
         except:
             return ""

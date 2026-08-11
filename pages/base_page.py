@@ -53,6 +53,18 @@ class BasePage:
     def wait_until_element_invisible(self, locator):
         return WebDriverWait(self.driver, TestData.WAIT_TIMEOUT).until(EC.invisibility_of_element(locator))
 
+    @allure.step('Дождаться, пока текст элемента не станет равен указанному')
+    def wait_until_text_not_equal(self, locator, text):
+        WebDriverWait(self.driver, TestData.WAIT_TIMEOUT).until(
+            lambda driver: self.get_actually_text(locator) != text
+        )
+
+    @allure.step('Дождаться, пока URL станет равен ожидаемому')
+    def wait_until_url_equals(self, expected_url):
+        WebDriverWait(self.driver, TestData.WAIT_TIMEOUT).until(
+            lambda driver: driver.current_url == expected_url
+        )
+
     @allure.step('Получить текущую ссылку')
     def get_current_url(self):
         current_url = self.driver.current_url
@@ -60,7 +72,6 @@ class BasePage:
 
     @allure.step('Получить имя браузера')
     def get_browser_name(self):
-        """Возвращает имя текущего браузера"""
         return self.driver.capabilities.get('browserName', '').lower()
 
     @allure.step('Перетащить элемент (стандартный)')
